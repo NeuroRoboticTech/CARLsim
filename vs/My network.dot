@@ -1,0 +1,8 @@
+digraph G {
+		node [style=filled];
+		color=blue;
+		g0 [shape = box,  label="id=0:input \n numN=100 avgPost=9.54 avgPre=0.00 \n maxPost=17 maxPre=0"];
+		g1 [  label="id=1:excitatory \n numN=100 avgPost=0.00 avgPre=9.54 \n maxPost=0 maxPre=0"];
+		g0 -> g1 [style=bold, arrowType=normal, label="avgPost=9.00, avgPre=9.00, wt=1.000, maxD=20 "]
+
+}
