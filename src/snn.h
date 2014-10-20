@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2013 Regents of the University of California. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,7 +36,7 @@
  *
  * CARLsim available from http://socsci.uci.edu/~jkrichma/CARLsim/
  * Ver 07/13/2013
- */ 
+ */
 
 #ifndef _SNN_GOLD_H_
 #define _SNN_GOLD_H_
@@ -48,6 +48,13 @@
 #include "gpu_random.h"
 #include "config.h"
 #include "PropagatedSpikeBuffer.h"
+
+#define USE_EXCEPTIONS 1
+
+#ifdef USE_EXCEPTIONS
+    #include <exception>
+    #include <stdexcept>
+#endif // USE_EXCEPTIONS
 
 using std::string;
 using std::map;
@@ -69,6 +76,12 @@ using std::map;
 
 extern RNG_rand48* gpuRand48; //!< Used by all network to generate global random number
 
+//Specifies the time step used for the integration.
+#define CARLSIM_STEP_INCREMENT 0.001
+
+//This controls how many iterations are taken before an update occurs.
+//I have it set here to 10 ms, the default for CarlSim would be 1000 for 1 second.
+#define CARLSIM_STEP_SIZE 10
 
 #define ALL -1 //!< used for the set* methods to specify all groups and/or configIds
 
@@ -172,12 +185,34 @@ inline bool isInhibitoryNeuron (unsigned int& nid, unsigned int& numNInhPois, un
 #define GET_FIRING_TABLE_NID(val)   ((val) & MAX_NUMBER_OF_NEURONS_MASK)
 #define GET_FIRING_TABLE_GID(val)   (((val) >> MAX_NUMBER_OF_NEURONS_BITS) & MAX_NUMBER_OF_GROUPS_MASK)
 
-//!< Used for in the function getConnectionId
-#define CHECK_CONNECTION_ID(n,total) { assert(n >= 0); assert(n < total); }
+///Use exceptions instead of exiting.
+
+
+#ifdef USE_EXCEPTIONS
+    #define carlsim_assert(pred) {if(!(pred)) throw std::runtime_error("Assert triggered.\n");}
+#else
+    #define carlsim_assert(pred) assert(pred)
+#endif
 
 //Various callback functions
 
 class CpuSNN;
+
+//! used for fine-grained control over the stepping behavior during a runNetwork execution
+/*!
+ * If this callback is set then the using application is notified each time the simulation is stepped
+   and if it passes back a true then then stepping stops at that point and the runNetwork call exists.
+ */
+class StepFeedback {
+ public:
+  StepFeedback() {};
+
+  /*! \attention The virtual method should never be called directly */
+  virtual bool stepUpdate(CpuSNN* s, int step) { assert(false); return false;}; // the virtual method should never be called directly
+  virtual void updateMonitors(CpuSNN* s, int step) { assert(false);}; // the virtual method should never be called directly
+};
+
+
 
 //! used for fine-grained control over spike generation, using a callback mechanism
 /*! Spike generation can be performed using spike generators. Spike generators are dummy-neurons that have their spikes
@@ -233,7 +268,7 @@ class SpikeMonitor {
 
   //! Controls actions that are performed when certain neurons fire (user-defined).
   /*! \attention The virtual method should never be called directly */
-  virtual void update(CpuSNN* s, int grpId, unsigned int* Nids, unsigned int* timeCnts) {};
+  virtual void update(CpuSNN* s, int grpId, unsigned int* Nids, unsigned int* timeCnts, unsigned int total_spikes, float firing_Rate) {};
 };
 
 
@@ -309,7 +344,7 @@ typedef struct network_info_s  {
   bool		sim_with_stp;
 } network_info_t;
 
-//! nid=neuron id, sid=synapse id, grpId=group id. 
+//! nid=neuron id, sid=synapse id, grpId=group id.
 inline post_info_t SET_CONN_ID(int nid, int sid, int grpId)
 {
   if (sid > CONN_SYN_MASK) {
@@ -362,11 +397,11 @@ typedef struct network_ptr_s  {
   float*		probeV;
   float*		probeI;
   uint32_t*	probeId;
-  
+
   //!< homeostatic plasticity variables
   //!< TODO: Make sure these are used
   float*	probeHomeoFreq;
-  float*	probeBaseFreq;	 
+  float*	probeBaseFreq;
 
   float*		poissonFireRate;
   unsigned int*		poissonRandPtr;		//!< firing random number. max value is 10,000
@@ -586,7 +621,7 @@ class CpuSNN
  public:
 
   const static unsigned int MAJOR_VERSION = 2; //!< major release version, as in CARLsim X
-  const static unsigned int MINOR_VERSION = 2; //!< minor release version, as in CARLsim 2.X
+  const static unsigned int MINOR_VERSION = 3; //!< minor release version, as in CARLsim 2.X
 
   CpuSNN(const string& _name, int _numConfig = 1, int randomize = 0, int mode=CPU_MODE);
   ~CpuSNN();
@@ -594,7 +629,7 @@ class CpuSNN
   //! creates a group of Izhikevich spiking neurons
   int createGroup(const string& _name, unsigned int _numN, int _nType, int configId = ALL);
 
-  //! creates a spike generator group (dummy-neurons, not Izhikevich spiking neurons). 
+  //! creates a spike generator group (dummy-neurons, not Izhikevich spiking neurons).
   int createSpikeGeneratorGroup(const string& _name, int unsigned size_n, int stype, int configId = ALL);
 
   //! Sets the Izhikevich parameters a, b, c, and d of a neuron group.
@@ -602,7 +637,7 @@ class CpuSNN
    * deviation a_sd, b_sd, c_sd, and d_sd, respectively. */
   void setNeuronParameters(int groupId, float _a, float a_sd, float _b, float b_sd, float _c, float c_sd, float _d, float d_sd, int configId=ALL);
 
-  //! Sets the Izhikevich parameters a, b, c, and d of a neuron group. 
+  //! Sets the Izhikevich parameters a, b, c, and d of a neuron group.
   void setNeuronParameters(int groupId, float _a, float _b, float _c, float _d, int configId=ALL);
 
   void setNeuronParameters(int groupId, IzhGenerator* IzhGen, int configId=ALL);
@@ -613,7 +648,7 @@ class CpuSNN
 
   //! prints a network graph using Dotty (GraphViz)
   void printDotty ();
-  
+
   // required for homeostasis
   grpConnectInfo_t* getConnectInfo(int connectId, int configId=0);
 
@@ -665,10 +700,10 @@ class CpuSNN
    * frame over which the average firing rate is averaged (it should be larger in scale than STDP timescales).
    */
   void setHomeostasis(int g, bool enable, float homeostasisScale, float avgTimeScale, int configId=0);
-  
-  
+
+
   /*!
-   * \brief Sets the homeostatic target firing rate.  Neurons will try to attain this firing rate using 
+   * \brief Sets the homeostatic target firing rate.  Neurons will try to attain this firing rate using
    * homeostatic synaptic scaling.
    */
   void setBaseFiring(int groupId, int configId, float _baseFiring, float _baseFiringSD);
@@ -692,16 +727,16 @@ class CpuSNN
 #else
   int readNetwork_internal();
 #endif
-  
+
   // Used to copy grp_info to gpu for setSTDP, setSTP, and setHomeostasis
     void copyGrpInfo_GPU();
 
   /*!
    * \brief Writes weights from synaptic connections from gIDpre to gIDpost.  Returns a pointer to the weights
-   * and the size of the 1D array in size.  gIDpre(post) is the group ID for the pre(post)synaptic group, 
-   * weights is a pointer to a single dimensional array of floats, size is the size of that array which is 
+   * and the size of the 1D array in size.  gIDpre(post) is the group ID for the pre(post)synaptic group,
+   * weights is a pointer to a single dimensional array of floats, size is the size of that array which is
    * returned to the user, and configID is the configuration ID of the SNN.  NOTE: user must free memory from
-   * weights to avoid a memory leak.  
+   * weights to avoid a memory leak.
    */
   void getPopWeights(int gIDpre, int gIDpost, float*& weights, int& size, int configId = 0);
   /*!
@@ -720,7 +755,7 @@ class CpuSNN
   void setTuningLog(string fname)
   {
     fpTuningLog = fopen(fname.c_str(), "w");
-    assert(fpTuningLog != NULL);
+    carlsim_assert(fpTuningLog != NULL);
   }
 
   //! sets the update cycle for log messages
@@ -802,7 +837,7 @@ class CpuSNN
    * Warning: drastically reduces speed of simulation.  Only use for debugging purposes.
    */
   void printNeuronStateBinary(string fname, int grpId, int configId=0, int count=-1);
-  
+
   /*!
    * \brief Resets either the neuronal firing rate information by setting resetFiringRate = true and/or the
    * weight values back to their default values by setting resetWeights = true.
@@ -823,7 +858,7 @@ class CpuSNN
   //Added this to copy firing state information from gpu kernel
   //to cpuNetPtrs so it can be accessed by the user.  To use
   //getSpikeCntPtr_GPU this flag must be set to true. This should be
-  //set to false by default because it adds additional overhead. 
+  //set to false by default because it adds additional overhead.
   //This can be toggled on or off between runNetwork
   //calls. -- KDC
    /*!
@@ -845,32 +880,32 @@ class CpuSNN
     //! do check to make sure appropriate flag is set
     if(simType == GPU_MODE && enableGPUSpikeCntPtr == false){
       fprintf(stderr,"Error: the enableGPUSpikeCntPtr flag must be set to true to use this function in GPU_MODE.\n");
-      assert(enableGPUSpikeCntPtr);
+      carlsim_assert(enableGPUSpikeCntPtr);
     }
-    
+
     if(simType == GPU_MODE){
-      assert(enableGPUSpikeCntPtr);
+      carlsim_assert(enableGPUSpikeCntPtr);
     }
-    
+
     return ((grpId == -1) ? nSpikeCnt : &nSpikeCnt[grp_Info[grpId].StartN]);
   }
 
   // This function calls the callback connect function for a particular
   // connection (or number of identical configurations of a connection).
   // This function can only be used for fixed weights and for connections
-  // of type CONN_USER_DEFINED.  Only the weights are change, not the 
+  // of type CONN_USER_DEFINED.  Only the weights are change, not the
   // maxWts, delays, or the connected values. -- KDC
   /*!
    * \brief Reassigns fixed weights to values passed into the function in a single 1D float matrix called
-   * weightMatrix.  The user passes the connection ID (connectID), the weightMatrix, the matrixSize, and 
+   * weightMatrix.  The user passes the connection ID (connectID), the weightMatrix, the matrixSize, and
    * configuration ID (configID).  This function only works for fixed synapses.
    */
   void reassignFixedWeights(int connectId, float weightMatrix [], int matrixSize, int configId = ALL);
-  
-  //! Input: connectionID.  Output: the number of connections associated with that connection ID.   
+
+  //! Input: connectionID.  Output: the number of connections associated with that connection ID.
   int getNumConnections(int connectionId);
-  
-	
+
+
   void printNetworkInfo();
 
   //! print all the connections...
@@ -915,9 +950,13 @@ class CpuSNN
    * Output: none.
    */
   void resetSpikeCntUtil(int grpId = -1);
-  
+
   //! Utility function to clear spike counts in the GPU code.
   void resetSpikeCnt_GPU(int _startGrp, int _endGrp);
+
+  void setStepFeedback(StepFeedback *feedback) {stepFeedback = feedback;};
+
+  void setSpikeRateUpdated() {spikeRateUpdated = true;};
 
  private:
   void setGrpTimeSlice(int grpId, int timeSlice); //!< used for the Poisson generator.  It can probably be further optimized...
@@ -946,7 +985,7 @@ class CpuSNN
   void stopGPUTiming();
 
   void resetPointers();
-	
+
   void resetConductances();
   void resetCounters();
   void resetCurrent();
@@ -994,7 +1033,7 @@ class CpuSNN
   void connectOneToOne(grpConnectInfo_t* info);
   void connectFromMatrix(SparseWeightDelayMatrix* mat, int connProp);
 
-  void exitSimulation(int val);
+  void exitSimulation(int val, const char *errorString);
 
   void deleteObjects(); //!< deallocates all used data structures in snn_cpu.cpp
   void deleteObjectsGPU(); //!< deallocates all used data structures in snn_gpu.cu
@@ -1143,8 +1182,6 @@ class CpuSNN
   void setDefaultParameters(float alpha_ltp=0, float tau_ltp=0, float alpha_ltd=0, float tau_ltd=0);
 
   void setupNetwork(int simType=CPU_MODE, int ithGPU=0, bool removeTempMemory=true);
-
-
 
  private:
   SparseWeightDelayMatrix* tmp_SynapseMatrix_fixed;
@@ -1347,6 +1384,8 @@ class CpuSNN
   group_info2_t		grp_Info2[MAX_GRP_PER_SNN];
   float*			testVar, *testVar2;
   uint32_t*	spikeGenBits;
+
+  StepFeedback *stepFeedback;
 
 
   /* these are deprecated, and replaced by writeNetwork(FILE*)
