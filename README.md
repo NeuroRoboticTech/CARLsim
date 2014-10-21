@@ -1,3 +1,17 @@
+This is a copy of the CARLsim project for use with the AnimatLab Neuromechanical
+simulator (http://www.animatlab.com). It has modifications from the original 
+source code. If you would like the original, unmodified, source code then please
+go to the link below to obtain it. Here is a list of the major changes.
+
+1. Created a visual studio project to get CARLsim to work and run in Windows
+2. Added code to allow you to switch out from using asserts and ends to using
+standard exceptions.
+3. Added some more data that gets passed back in few functions like the 
+spike monitors.
+4. Added some additional callbacks when a step happens.
+5. Modified it so that it reports spike data back every 10 ms instead of every
+second. You can change the report back time by modifying one of the defines.
+
 
 README for CARLsim SNN simulator and parameter tuning interface (PTI)
 -------------------------------------------------------------------------------

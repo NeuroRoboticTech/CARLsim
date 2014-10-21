@@ -3,5 +3,8 @@
 	<Workspace title="CarlSim">
 		<Project filename="CarlSim.cbp" active="1">
 		</Project>
+		<Project filename="simple.cbp">
+			<Depends filename="CarlSim.cbp" />
+		</Project>
 	</Workspace>
 </CodeBlocks_workspace_file>
