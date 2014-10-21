@@ -438,7 +438,7 @@ CpuSNN::CpuSNN(const string& _name, int _numConfig, int _randSeed, int _mode)
   numProbe 	 = 0;
   neuronProbe  = NULL;
 
-  simTimeMs	 = 0;	simTimeSec		 = 0;   simTime = 0;
+  simTimeMs	 = 0;	simTimeSec		 = 0;   simTime = 0; simTimeTotalMs = 0;
   spikeCountAll1sec = 0;  secD1fireCntHost  = 0;	secD2fireCntHost  = 0;
   spikeCountAll     = 0;	spikeCountD2Host = 0;	spikeCountD1Host = 0;
   nPoissonSpikes     = 0;
@@ -2550,7 +2550,7 @@ void CpuSNN::showStatus(int simType)
     if(k==0)
       printWeight(-1);
 
-    fprintf(fpVal[k], "(time=%lld) =========\n\n", (unsigned long long) simTimeSec);
+    fprintf(fpVal[k], "(time=%lld : %d) =========\n\n", (unsigned long long) simTimeSec, (unsigned int) simTimeMs);
 
 
 #if REG_TESTING
@@ -2627,7 +2627,13 @@ bool CpuSNN::updateTime()
   // update relevant parameters...now
   if(++simTimeMs == CARLSIM_STEP_SIZE) {
     simTimeMs = 0;
-    simTimeSec++;
+    simTimeTotalMs+=CARLSIM_STEP_SIZE;
+
+    if(simTimeTotalMs == 1000) {
+        simTimeTotalMs = 0;
+        simTimeSec++;
+    }
+
     finishedOneSec = true;
   }
 
@@ -3575,6 +3581,7 @@ void CpuSNN::resetFiringInformation()
   // reset various times...
   simTimeMs  = 0;
   simTimeSec = 0;
+  simTimeTotalMs = 0;
   simTime    = 0;
 
   // reset the propogation Buffer.

@@ -83,6 +83,10 @@ extern RNG_rand48* gpuRand48; //!< Used by all network to generate global random
 //I have it set here to 10 ms, the default for CarlSim would be 1000 for 1 second.
 #define CARLSIM_STEP_SIZE 10
 
+//The number of times we will get an update per second with the current Step size
+//for a CARLSIM_STEP_SIZE of 10 ms this would be 100 updates
+#define CARLSIM_UPDATES_PER_SECOND 100
+
 #define ALL -1 //!< used for the set* methods to specify all groups and/or configIds
 
 #define SYN_FIXED      0
@@ -1288,6 +1292,7 @@ class CpuSNN
   //time and timestep
   unsigned int	simTimeMs;
   uint64_t        simTimeSec;		//!< this is used to store the seconds.
+  unsigned int    simTimeTotalMs;  //!< The total number of milliseconds within a second
   unsigned int	simTime;		//!< this value is not reset but keeps increasing to its max value.
   unsigned int		spikeCountAll1sec, secD1fireCntHost, secD2fireCntHost;	//!< firing counts for each second
   unsigned int		spikeCountAll, spikeCountD1Host, spikeCountD2Host;	//!< overall firing counts values

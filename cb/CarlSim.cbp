@@ -27,7 +27,7 @@
 					<Add library="cudart" />
 				</Linker>
 				<ExtraCommands>
-					<Add after="cp Debug/libCARLsim_debug.so ../lib" />
+					<Add after="cp Debug/libCARLsim_debug.so ../bin" />
 				</ExtraCommands>
 			</Target>
 			<Target title="Release">
@@ -52,7 +52,7 @@
 					<Add library="cudart" />
 				</Linker>
 				<ExtraCommands>
-					<Add after="cp Debug/libCARLsim.so ../lib" />
+					<Add after="cp Debug/libCARLsim.so ../bin" />
 				</ExtraCommands>
 			</Target>
 		</Build>

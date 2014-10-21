@@ -67,7 +67,7 @@ int main()
 	sim->setLogCycle(1, 1, stdout);
 
 	// set up where to store the spikes
-	sim->setSpikeMonitor(gEx, "C:/Projects/AnimatLabSDK/3rdParty/CARLsim/examples/Example/spkEx.dat"); // write spike times to file
+	sim->setSpikeMonitor(gEx, "spkEx.dat"); // write spike times to file
 
 	// initialize the GPU / network
 	sim->runNetwork(0,0, onGPU?GPU_MODE:CPU_MODE,ithGPU);
@@ -79,10 +79,10 @@ int main()
 	sim->setSpikeRate(gIn, &inSpikes);
 
 	// run the network for 1 s and 0 ms
-	sim->runNetwork(1,0, onGPU?GPU_MODE:CPU_MODE,ithGPU);
+	sim->runNetwork(2,0, onGPU?GPU_MODE:CPU_MODE,ithGPU);
 
 	// store the network state
-	FILE* nid = fopen("C:/Projects/AnimatLabSDK/3rdParty/CARLsim/examples/Example/network.dat","wb");
+	FILE* nid = fopen("network.dat","wb");
 	sim->writeNetwork(nid);
 	fclose(nid);
 
