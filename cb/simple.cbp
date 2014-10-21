@@ -19,9 +19,10 @@
 					<Add directory="../src" />
 				</Compiler>
 				<Linker>
-					<Add directory="../../../bin" />
 					<Add library="cudart" />
 					<Add library="CarlSim_debug" />
+					<Add directory="../bin" />
+					<Add directory="/usr/local/cuda/lib" />
 				</Linker>
 				<ExtraCommands>
 					<Add after="cp Debug/simple_debug ../bin" />
@@ -41,18 +42,20 @@
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
-					<Add directory="Release" />
 					<Add library="cudart" />
 					<Add library="CarlSim" />
+					<Add directory="Release" />
 				</Linker>
 				<ExtraCommands>
 					<Add after="cp Debug/simple ../bin" />
 				</ExtraCommands>
 			</Target>
 		</Build>
-		<Unit filename="../examples/simple/main_Simple.cpp">
-		</Unit>
-		<Extensions />
+		<Unit filename="../examples/simple/main_Simple.cpp" />
+		<Extensions>
+			<code_completion />
+			<envvars />
+			<debugger />
+		</Extensions>
 	</Project>
 </CodeBlocks_project_file>
-
