@@ -2933,6 +2933,7 @@ void CpuSNN::showStatus_GPU()
   spikeCountAll1sec = gpu_secD1fireCnt + gpu_secD2fireCnt;
   secD1fireCnt  = gpu_secD1fireCnt;
 
+#ifdef ENABLE_CONSOLE_PRINTOUT
   FILE* fpVal[2];
   fpVal[0] = fpLog;
   fpVal[1] = fpProgLog;
@@ -2942,7 +2943,6 @@ void CpuSNN::showStatus_GPU()
       printWeight(-1);
 
     fprintf(fpVal[k], "(time=%lld) =========\n\n", (unsigned long long) simTimeSec);
-
 
 #if REG_TESTING
     // if the overall firing rate is very low... then report error...
@@ -2954,6 +2954,7 @@ void CpuSNN::showStatus_GPU()
 
     fflush(fpVal[k]);
   }
+#endif
 
 #if REG_TESTING
   if(spikeCountAll1sec == 0) {
@@ -3006,7 +3007,11 @@ void CpuSNN::copyFiringInfo_GPU()
   CUDA_CHECK_ERRORS( cudaMemcpy(firingTableD1, cpu_gpuNetPtrs.firingTableD1, sizeof(int)*gpu_secD1fireCnt, cudaMemcpyDeviceToHost));
   CUDA_CHECK_ERRORS( cudaMemcpyFromSymbol(timeTableD2, timingTableD2, sizeof(int)*(CARLSIM_STEP_SIZE+D+1), 0, cudaMemcpyDeviceToHost));
   CUDA_CHECK_ERRORS( cudaMemcpyFromSymbol(timeTableD1, timingTableD1, sizeof(int)*(CARLSIM_STEP_SIZE+D+1), 0, cudaMemcpyDeviceToHost));
+
+#ifdef ENABLE_CONSOLE_PRINTOUT
   fprintf(stderr, "Total spikes Multiple Delays=%d, 1Ms Delay=%d\n", gpu_secD2fireCnt,gpu_secD1fireCnt);
+#endif 
+
   //getchar();
 }
 

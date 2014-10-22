@@ -87,6 +87,8 @@ extern RNG_rand48* gpuRand48; //!< Used by all network to generate global random
 //for a CARLSIM_STEP_SIZE of 10 ms this would be 100 updates
 #define CARLSIM_UPDATES_PER_SECOND 100
 
+//#define ENABLE_CONSOLE_PRINTOUT
+
 #define ALL -1 //!< used for the set* methods to specify all groups and/or configIds
 
 #define SYN_FIXED      0

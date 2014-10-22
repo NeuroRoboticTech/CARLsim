@@ -2534,7 +2534,9 @@ void CpuSNN::showStatus(int simType)
 {
   DBG(2, fpLog, AT, "showStatus() called");
 
+#ifdef ENABLE_CONSOLE_PRINTOUT
   printState("showStatus\n");
+#endif
 
   if(simType == GPU_MODE) {
     showStatus_GPU();
@@ -2550,8 +2552,9 @@ void CpuSNN::showStatus(int simType)
     if(k==0)
       printWeight(-1);
 
+#ifdef ENABLE_CONSOLE_PRINTOUT
     fprintf(fpVal[k], "(time=%lld : %d) =========\n\n", (unsigned long long) simTimeSec, (unsigned int) simTimeMs);
-
+#endif
 
 #if REG_TESTING
     // if the overall firing rate is very low... then report error...
@@ -4092,7 +4095,10 @@ void CpuSNN::updateSpikeMonitor()
     if(monitorId!= -1) {
 		unsigned int total_spikes = monBufferPos[monitorId];
 		float firing_rate = (((float)monBufferPos[monitorId])/(grp_Info[grpId].SizeN)/((float) (CARLSIM_STEP_SIZE*CARLSIM_STEP_INCREMENT)));
-      fprintf(stderr, "Spike Monitor for Group %s has %d spikes (%f Hz)\n",grp_Info2[grpId].Name.c_str(),total_spikes,firing_rate);
+
+#ifdef ENABLE_CONSOLE_PRINTOUT
+		fprintf(stderr, "Spike Monitor for Group %s has %d spikes (%f Hz)\n",grp_Info2[grpId].Name.c_str(),total_spikes,firing_rate);
+#endif
 
       // call the callback function
       if (monBufferCallback[monitorId])
