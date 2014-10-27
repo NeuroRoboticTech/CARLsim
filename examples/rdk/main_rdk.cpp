@@ -335,12 +335,12 @@ int main()
 	s.setSTP(ALL,false);
 
 	s.setSpikeMonitor(gV1ME);
-	strcpy(thisTmpSave,saveFolder); s.setSpikeMonitor(gMT1,strcat(thisTmpSave,"spkMT1.dat"));
-	strcpy(thisTmpSave,saveFolder); s.setSpikeMonitor(gMT2,strcat(thisTmpSave,"spkMT2.dat"));
-	strcpy(thisTmpSave,saveFolder); s.setSpikeMonitor(gMT3,strcat(thisTmpSave,"spkMT3.dat"));
-	strcpy(thisTmpSave,saveFolder); s.setSpikeMonitor(gMT1i,strcat(thisTmpSave,"spkMT1i.dat"));
-	strcpy(thisTmpSave,saveFolder); s.setSpikeMonitor(gPFC,strcat(thisTmpSave,"spkPFC.dat"));
-	strcpy(thisTmpSave,saveFolder); s.setSpikeMonitor(gPFCi,strcat(thisTmpSave,"spkPFCi.dat"));
+	strcpy(thisTmpSave,saveFolder); s.setSpikeMonitor(gMT1,"spkMT1.dat");
+	strcpy(thisTmpSave,saveFolder); s.setSpikeMonitor(gMT2,"spkMT2.dat");
+	strcpy(thisTmpSave,saveFolder); s.setSpikeMonitor(gMT3,"spkMT3.dat");
+	strcpy(thisTmpSave,saveFolder); s.setSpikeMonitor(gMT1i,"spkMT1i.dat");
+	strcpy(thisTmpSave,saveFolder); s.setSpikeMonitor(gPFC,"spkPFC.dat");
+	strcpy(thisTmpSave,saveFolder); s.setSpikeMonitor(gPFCi,"spkPFCi.dat");
 
 	unsigned char* vid = new unsigned char[nrX*nrY*3];
 
@@ -358,7 +358,7 @@ int main()
 	#define VIDLEN (8*33*10)
 
 	for(long long i=0; i < VIDLEN*1; i++) {
-		if (i%VIDLEN==0) fid = fopen("videos/rdk3.dat","rb");
+		if (i%VIDLEN==0) fid = fopen("C:\\Projects\\AnimatLabSDK\\3rdParty\\CARLsim\\videos\\rdk3.dat","rb");
 		fread(vid,1,nrX*nrY*3,fid);
 
 		calcColorME(nrX, nrY, vid, red_green.rates, green_red.rates, blue_yellow.rates, yellow_blue.rates, me.rates, onGPU);
@@ -370,7 +370,7 @@ int main()
 
 		if (i==1) {
 			strcpy(thisTmpSave,saveFolder);
-			FILE* nid = fopen(strcat(thisTmpSave,"net.dat"),"wb");
+			FILE* nid = fopen("net.dat","wb");
 			s.writeNetwork(nid);
 			fclose(nid);
 		}

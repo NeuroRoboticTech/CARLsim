@@ -83,11 +83,9 @@ extern RNG_rand48* gpuRand48; //!< Used by all network to generate global random
 //I have it set here to 10 ms, the default for CarlSim would be 1000 for 1 second.
 #define CARLSIM_STEP_SIZE 10
 
-//The number of times we will get an update per second with the current Step size
-//for a CARLSIM_STEP_SIZE of 10 ms this would be 100 updates
-#define CARLSIM_UPDATES_PER_SECOND 100
+#define CARLSIM_MONITOR_STEP_SIZE 10
 
-//#define ENABLE_CONSOLE_PRINTOUT
+#define ENABLE_CONSOLE_PRINTOUT
 
 #define ALL -1 //!< used for the set* methods to specify all groups and/or configIds
 
@@ -195,7 +193,7 @@ inline bool isInhibitoryNeuron (unsigned int& nid, unsigned int& numNInhPois, un
 
 
 #ifdef USE_EXCEPTIONS
-    #define carlsim_assert(pred) {if(!(pred)) throw std::runtime_error("Assert triggered.\n");}
+    void carlsim_assert(bool pred); 
 #else
     #define carlsim_assert(pred) assert(pred)
 #endif

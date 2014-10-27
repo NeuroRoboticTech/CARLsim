@@ -43,7 +43,7 @@ void calcColorME(int nrX, int nrY, unsigned char* stim, float* red_green, float*
 extern MTRand	      getRand;
 
 
-#define nrX (32)
+#define nrX (16)
 #define nrY (nrX)
 
 #define V1_LAYER_DIM	(nrX)
@@ -214,8 +214,8 @@ int main()
 
 	s.setSpikeMonitor(gV1ME);
 
-	s.setSpikeMonitor(gV4o,"C:/Projects/AnimatLabSDK/3rdParty/carlsim-2.2.0/vs/Debug/results/orientation/spkV4o.dat");
-	s.setSpikeMonitor(gV4oi,"C:/Projects/AnimatLabSDK/3rdParty/carlsim-2.2.0/vs/Debug/results/orientation/spkV4oi.dat");
+	s.setSpikeMonitor(gV4o,"spkV4o.dat");
+	s.setSpikeMonitor(gV4oi,"spkV4oi.dat");
 
 	unsigned char* vid = new unsigned char[nrX*nrY*3];
 
@@ -237,7 +237,7 @@ int main()
 	#define VIDLEN (4*33)
 
 	for(long long i=0; i < VIDLEN*1; i++) {
-		if (i%VIDLEN==0) fid = fopen("videos/orienR.dat","rb");
+		if (i%VIDLEN==0) fid = fopen("C:/Projects/AnimatLabSDK/3rdParty/CARLsim/videos/orienR.dat","rb");
 		fread(vid,1,nrX*nrY*3,fid);
 
 		calcColorME(nrX, nrY, vid, red_green.rates, green_red.rates, blue_yellow.rates, yellow_blue.rates, me.rates, onGPU);
@@ -248,7 +248,7 @@ int main()
 		s.runNetwork(0,FRAMEDURATION, onGPU?GPU_MODE:GPU_MODE);
 
 		if (i==1) {
-			FILE* nid = fopen("results/orientation/net.dat","wb");
+			FILE* nid = fopen("net.dat","wb");
 			s.writeNetwork(nid);
 			fclose(nid);
 		}

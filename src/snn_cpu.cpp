@@ -82,6 +82,11 @@ RNG_rand48* gpuRand48 = NULL;
     #endif
 #endif
 
+void carlsim_assert(bool pred)
+{
+	if(!(pred)) 
+		throw std::runtime_error("Assert triggered.\n");
+}
 
 /*********************************************/
 
@@ -359,15 +364,16 @@ CpuSNN::CpuSNN(const string& _name, int _numConfig, int _randSeed, int _mode)
   fprintf(stdout, "***** GPU-SNN Simulation Begins Version %d.%d *** \n",MAJOR_VERSION,MINOR_VERSION);
   fprintf(stdout, "************************************************\n");
 
-  // initialize propogated spike buffers.....
-  pbuf = new PropagatedSpikeBuffer(0, PROPAGATED_BUFFER_SIZE);
-
   numConfig 			  = _numConfig;
   finishedPoissonGroup  = false;
   carlsim_assert(numConfig > 0);
   carlsim_assert(numConfig < 100);
 
   resetPointers();
+
+  // initialize propogated spike buffers.....
+  pbuf = new PropagatedSpikeBuffer(0, PROPAGATED_BUFFER_SIZE);
+
   numN = 0; numPostSynapses = 0; D = 0;
   memset(&cpuSnnSz, 0, sizeof(cpuSnnSz));
   enableSimLogs = false;
@@ -1711,8 +1717,8 @@ int CpuSNN::updateSpikeTables()
       maxSpikesD2 += (grp_Info[g].SizeN*grp_Info[g].MaxFiringRate);
   }
 
-  //		maxSpikesD1 = (maxSpikesD1 == 0)? 1 : maxSpikesD1;
-  //		maxSpikesD2 = (maxSpikesD2 == 0)? 1 : maxSpikesD2;
+  		maxSpikesD1 = (maxSpikesD1 == 0)? 1 : maxSpikesD1;
+  		maxSpikesD2 = (maxSpikesD2 == 0)? 1 : maxSpikesD2;
 
   if ((maxSpikesD1+maxSpikesD2) < (numNExcReg+numNInhReg+numNPois)*UNKNOWN_NEURON_MAX_FIRING_RATE) {
     exitSimulation(1, "Insufficient amount of buffer allocated...\n");
@@ -1723,7 +1729,7 @@ int CpuSNN::updateSpikeTables()
 
   firingTableD2 	    = new unsigned int[maxSpikesD2];
   firingTableD1 	    = new unsigned int[maxSpikesD1];
-  cpuSnnSz.spikingInfoSize    += sizeof(int)*((maxSpikesD2+maxSpikesD1) + 2*(1000+D+1));
+  cpuSnnSz.spikingInfoSize    += sizeof(int)*((maxSpikesD2+maxSpikesD1) + 2*(CARLSIM_STEP_SIZE+D+1));
 
   return curD;
 }
@@ -2481,7 +2487,7 @@ void  CpuSNN::globalStateUpdate()
 	  if (voltage[i] < -90) voltage[i] = -90;
 	  recovery[i]+=Izh_a[i]*(Izh_b[i]*voltage[i]-recovery[i])/COND_INTEGRATION_SCALE;
 	}
-	//if (i==grp_Info[6].StartN) printf("voltage: %f AMPA: %f NMDA: %f GABAa: %f GABAb: %f\n",voltage[i],gAMPA[i],gNMDA[i],gGABAa[i],gGABAb[i]);
+	//if (i==grp_Info[3].StartN) printf("voltage: %f current: %f AMPA: %f NMDA: %f GABAa: %f GABAb: %f\n",voltage[i],current[i],gAMPA[i],gNMDA[i],gGABAa[i],gGABAb[i]);
       } else {
 	voltage[i]+=0.5f*((0.04f*voltage[i]+5)*voltage[i]+140-recovery[i]+current[i]); // for numerical stability
 	voltage[i]+=0.5f*((0.04f*voltage[i]+5)*voltage[i]+140-recovery[i]+current[i]); // time step is 0.5 ms
@@ -2628,9 +2634,9 @@ bool CpuSNN::updateTime()
 
   // done one second worth of simulation
   // update relevant parameters...now
-  if(++simTimeMs == CARLSIM_STEP_SIZE) {
+  if(++simTimeMs == CARLSIM_MONITOR_STEP_SIZE) {
     simTimeMs = 0;
-    simTimeTotalMs+=CARLSIM_STEP_SIZE;
+    simTimeTotalMs+=CARLSIM_MONITOR_STEP_SIZE;
 
     if(simTimeTotalMs == 1000) {
         simTimeTotalMs = 0;

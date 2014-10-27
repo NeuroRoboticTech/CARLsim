@@ -47,9 +47,14 @@
 #include <malloc.h>
 #include <assert.h>
 #include <math.h>
+
+#ifdef _WIN32
+	#include <windows.h>
+#endif
+
 // This is the only header file that needs to be included
 // to use our EO modularity library.
-#include <pti.h>
+#include "pti.h"
 
 #define GENOME_SIZE 5
 
